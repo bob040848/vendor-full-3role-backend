@@ -1,0 +1,48 @@
+{
+  "name": "smes-v-be",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "PORT=3001 next dev",
+    "build": "prisma generate && yarn predev && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "codegen": "graphql-codegen --config codegen.yml",
+    "codegen:watch": "graphql-codegen --config codegen.yml --watch",
+    "predev": "graphql-codegen --config ./codegen.yml",
+    "generate": "prisma generate && yarn codegen",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@as-integrations/next": "^3.2.0",
+    "@clerk/backend": "^2.1.0",
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript-resolvers": "^4.5.1",
+    "@prisma/client": "^6.10.1",
+    "@prisma/extension-accelerate": "^2.0.1",
+    "apollo-server-micro": "^3.13.0",
+    "graphql": "^16.11.0",
+    "graphql-subscriptions": "^3.0.0",
+    "graphql-tag": "^2.12.6",
+    "lucide-react": "^0.517.0",
+    "next": "14.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsx": "^4.20.3",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.3",
+    "prisma": "^6.10.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

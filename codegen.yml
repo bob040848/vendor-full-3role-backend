@@ -1,0 +1,32 @@
+#//backend/codegen.yml
+overwrite: true
+schema: "./graphql/schema.ts"  
+generates:
+  generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
+    config:
+      useIndexSignature: true
+      contextType: "../graphql/context#GraphQLContext"
+      typesPrefix: "GQL_"
+      mappers:
+        User: "@prisma/client#User"
+        Vendor: "@prisma/client#Vendor"
+        Shop: "@prisma/client#Shop"
+        Product: "@prisma/client#Product"
+        ProductDelivery: "@prisma/client#ProductDelivery"
+        ProductDeliveredHistory: "@prisma/client#ProductDeliveredHistory"
+        ProductReturnHistory: "@prisma/client#ProductReturnHistory"
+        ProductRemaining: "@prisma/client#ProductRemaining"
+        ProductStock: "@prisma/client#ProductStock"
+        DeliveryPerson: "@prisma/client#DeliveryPerson"
+        ShopOrder: "@prisma/client#ShopOrder"
+        VendorRequest: "@prisma/client#VendorRequest"
+        DailySalesReport: "@prisma/client#DailySalesReport"
+        AdminApproval: "@prisma/client#AdminApproval"
+        Payment: "@prisma/client#Payment"
+      scalars:
+        DateTime: Date
+      avoidOptionals: false
+      maybeValue: T | null | undefined

@@ -1,0 +1,327 @@
+//backend/prisma/schema.prisma 
+generator client {
+  provider = "prisma-client-js"
+}
+ 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+ 
+enum TransactionType {
+  CASH
+  TRANSFER
+  NEXTPAYMENT
+}
+ 
+enum UserRole {
+  ADMIN
+  VENDOR
+  USER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  firstName  String?
+  lastName   String?
+  imageUrl   String?
+  role       UserRole @default(USER)
+  isActive   Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  vendor_requests VendorRequest[]
+  shop_orders     ShopOrder[]
+
+  @@map("users")
+}
+
+model VendorRequest {
+  id          String        @id @default(cuid())
+  user_id     String
+  name        String
+  email       String
+  phone       String?
+  address     String?
+  description String?
+  status      RequestStatus @default(PENDING)
+  reviewed_at DateTime?
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  user            User             @relation(fields: [user_id], references: [id])
+  admin_approvals AdminApproval[]
+
+  @@map("vendor_requests")
+}
+
+model AdminApproval {
+  id                String   @id @default(cuid())
+  vendor_request_id String
+  admin_id          String
+  approved          Boolean
+  notes             String?
+  created_at        DateTime @default(now())
+
+  vendor_request VendorRequest @relation(fields: [vendor_request_id], references: [id])
+
+  @@map("admin_approvals")
+}
+
+model ShopOrder {
+  id           String      @id @default(cuid())
+  shop_id      String
+  vendor_id    String
+  user_id      String      // Shop owner/manager who placed order
+  order_number String      @unique
+  status       OrderStatus @default(PENDING)
+  total_amount Int         @default(0)
+  notes        String?
+  ordered_at   DateTime    @default(now())
+  delivered_at DateTime?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  shop         Shop            @relation(fields: [shop_id], references: [id])
+  vendor       Vendor          @relation(fields: [vendor_id], references: [id])
+  user         User            @relation(fields: [user_id], references: [id])
+  order_items  ShopOrderItem[]
+
+  @@map("shop_orders")
+}
+
+model ShopOrderItem {
+  id           String @id @default(cuid())
+  shop_order_id String
+  product_id   String
+  quantity     Int
+  unit_price   Int
+  total_price  Int
+  created_at   DateTime @default(now())
+
+  shop_order ShopOrder @relation(fields: [shop_order_id], references: [id], onDelete: Cascade)
+  product    Product   @relation(fields: [product_id], references: [id])
+
+  @@map("shop_order_items")
+}
+
+model DailySalesReport {
+  id              String   @id @default(cuid())
+  shop_id         String
+  vendor_id       String
+  date            DateTime
+  total_sales     Int      @default(0)
+  total_orders    Int      @default(0)
+  cash_sales      Int      @default(0)
+  transfer_sales  Int      @default(0)
+  pending_payments Int     @default(0)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  shop   Shop   @relation(fields: [shop_id], references: [id])
+  vendor Vendor @relation(fields: [vendor_id], references: [id])
+
+  @@unique([shop_id, vendor_id, date])
+  @@map("daily_sales_reports")
+}
+
+model Payment {
+  id                          String            @id @default(cuid())
+  product_delivered_history_id String           @unique
+  amount                      Int
+  transaction_type            TransactionType
+  payment_reference           String?
+  paid_at                     DateTime
+  created_at                  DateTime          @default(now())
+
+  product_delivered_history ProductDeliveredHistory @relation(fields: [product_delivered_history_id], references: [id])
+
+  @@map("payments")
+}
+
+
+model Vendor {
+  id           String  @id @default(cuid())
+  name         String
+  email        String  @unique
+  phone_number String?
+  address      String?
+  is_active    Boolean @default(true)
+  image        String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+ 
+  products            Product[]
+  shop_orders         ShopOrder[]
+  daily_sales_reports DailySalesReport[]
+ 
+  @@map("vendors")
+}
+ 
+model Shop {
+  id           String  @id @default(cuid())
+  name         String
+  address      String
+  is_active    Boolean @default(true)
+  image        String?
+  email        String  @unique
+  phone_number String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+ 
+  products                  Product[]
+  product_deliveries        ProductDelivery[]
+  product_delivered_history ProductDeliveredHistory[]
+  product_return_history    ProductReturnHistory[]
+  shop_orders               ShopOrder[]
+  daily_sales_reports       DailySalesReport[]
+ 
+  @@map("shops")
+}
+ 
+model Product {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  stock       Int      @default(0)
+  ingredient  String?
+  barcode     Int?     @unique
+  price       Int     
+  expired_at  Int?     
+  image       String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+ 
+  vendor_id String
+  vendor    Vendor @relation(fields: [vendor_id], references: [id], onDelete: Cascade)
+  
+  shop_id String?
+  shop    Shop?   @relation(fields: [shop_id], references: [id], onDelete: SetNull)
+ 
+  product_deliveries        ProductDelivery[]
+  product_delivered_history ProductDeliveredHistory[]
+  product_return_history    ProductReturnHistory[]
+  product_remaining         ProductRemaining[]
+  product_stock             ProductStock[]
+  shop_order_items          ShopOrderItem[]
+ 
+  @@map("products")
+}
+ 
+model ProductDelivery {
+  id               String   @id @default(cuid())
+  pieces           Int
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+ 
+  product_id       String
+  product          Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  
+  delivery_person_id String
+  delivery_person    DeliveryPerson @relation(fields: [delivery_person_id], references: [id])
+  
+  shop_id String
+  shop    Shop   @relation(fields: [shop_id], references: [id])
+ 
+  @@map("product_deliveries")
+}
+ 
+model ProductDeliveredHistory {
+  id               String            @id @default(cuid())
+  total_price      Int               
+  transaction_type TransactionType
+  paid             Boolean           @default(false)
+  paid_at          DateTime?
+  signature        String?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+ 
+  product_id       String
+  product          Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  
+  shop_id          String
+  shop             Shop @relation(fields: [shop_id], references: [id])
+  
+  delivery_person_id String
+  delivery_person    DeliveryPerson @relation(fields: [delivery_person_id], references: [id])
+
+  payment          Payment?
+ 
+  @@map("product_delivered_history")
+}
+ 
+model ProductReturnHistory {
+  id         String   @id @default(cuid())
+  pieces     Int
+  signature  String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+ 
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  
+  shop_id    String
+  shop       Shop @relation(fields: [shop_id], references: [id])
+  
+  delivery_person_id String
+  delivery_person    DeliveryPerson @relation(fields: [delivery_person_id], references: [id])
+ 
+  @@map("product_return_history")
+}
+ 
+model ProductRemaining {
+  id           String   @id @default(cuid())
+  pieces       Int
+  is_delivered Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+ 
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+ 
+  @@map("product_remaining")
+}
+ 
+model ProductStock {
+  id           String   @id @default(cuid())
+  pieces       Int
+  is_delivered Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+ 
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+ 
+  @@map("product_stock")
+}
+ 
+model DeliveryPerson {
+  id           String  @id @default(cuid())
+  name         String
+  image        String?
+  phone_number String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+ 
+  product_deliveries        ProductDelivery[]
+  product_delivered_history ProductDeliveredHistory[]
+  product_return_history    ProductReturnHistory[]
+ 
+  @@map("delivery_persons")
+}
