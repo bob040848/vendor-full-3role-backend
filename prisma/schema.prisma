@@ -1,4 +1,4 @@
-//backend/prisma/schema.prisma 
+// backend/prisma/schema.prisma 
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,16 +16,18 @@ enum TransactionType {
  
 enum UserRole {
   ADMIN
-  VENDOR
-  USER
+  VENDOR  // Factories who produce/distribute products
+  USER    // Shops who get products and order products
 }
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
-  DELIVERED
-  CANCELLED
-  RETURNED
+  PENDING     // Initial order placed by shop
+  APPROVED    // Admin approved the order
+  REJECTED    // Admin rejected the order
+  CONFIRMED   // Vendor confirmed they can fulfill
+  DELIVERED   // Products delivered to shop
+  CANCELLED   // Order cancelled
+  RETURNED    // Products returned
 }
 
 enum RequestStatus {
@@ -34,9 +36,9 @@ enum RequestStatus {
   REJECTED
 }
 
-
 model User {
   id         String   @id @default(cuid())
+  clerk_id   String   @unique  // Clerk authentication ID
   email      String   @unique
   firstName  String?
   lastName   String?
@@ -46,42 +48,55 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  vendor_requests VendorRequest[]
+  // For USER role (shops)
   shop_orders     ShopOrder[]
+  
+  // For VENDOR role (factories)
+  vendor_profile  Vendor?
 
   @@map("users")
 }
 
-model VendorRequest {
-  id          String        @id @default(cuid())
-  user_id     String
-  name        String
-  email       String
-  phone       String?
-  address     String?
-  description String?
-  status      RequestStatus @default(PENDING)
-  reviewed_at DateTime?
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
+model Vendor {
+  id           String  @id @default(cuid())
+  user_id      String  @unique  // Links to User table
+  name         String
+  email        String  @unique
+  phone_number String?
+  address      String?
+  is_active    Boolean @default(true)
+  image        String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
-  user            User             @relation(fields: [user_id], references: [id])
-  admin_approvals AdminApproval[]
-
-  @@map("vendor_requests")
+  user                User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  products            Product[]
+  shop_orders         ShopOrder[]
+  daily_sales_reports DailySalesReport[]
+ 
+  @@map("vendors")
 }
 
-model AdminApproval {
-  id                String   @id @default(cuid())
-  vendor_request_id String
-  admin_id          String
-  approved          Boolean
-  notes             String?
-  created_at        DateTime @default(now())
-
-  vendor_request VendorRequest @relation(fields: [vendor_request_id], references: [id])
-
-  @@map("admin_approvals")
+model Shop {
+  id           String  @id @default(cuid())
+  user_id      String  @unique  // Links to User table for shop owners
+  name         String
+  address      String
+  is_active    Boolean @default(true)
+  image        String?
+  email        String  @unique
+  phone_number String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+ 
+  products                  Product[]
+  product_deliveries        ProductDelivery[]
+  product_delivered_history ProductDeliveredHistory[]
+  product_return_history    ProductReturnHistory[]
+  shop_orders               ShopOrder[]
+  daily_sales_reports       DailySalesReport[]
+ 
+  @@map("shops")
 }
 
 model ShopOrder {
@@ -102,8 +117,22 @@ model ShopOrder {
   vendor       Vendor          @relation(fields: [vendor_id], references: [id])
   user         User            @relation(fields: [user_id], references: [id])
   order_items  ShopOrderItem[]
+  admin_approvals AdminApproval[]  // Admin approval for orders
 
   @@map("shop_orders")
+}
+
+model AdminApproval {
+  id            String   @id @default(cuid())
+  shop_order_id String   // Links to ShopOrder instead of VendorRequest
+  admin_id      String   // Clerk ID of admin who approved/rejected
+  approved      Boolean
+  notes         String?
+  created_at    DateTime @default(now())
+
+  shop_order ShopOrder @relation(fields: [shop_order_id], references: [id], onDelete: Cascade)
+
+  @@map("admin_approvals")
 }
 
 model ShopOrderItem {
@@ -137,7 +166,7 @@ model DailySalesReport {
   shop   Shop   @relation(fields: [shop_id], references: [id])
   vendor Vendor @relation(fields: [vendor_id], references: [id])
 
-  @@unique([shop_id, vendor_id, date])
+  @@unique([shop_id, vendor_id, date], name: "shop_id_vendor_id_date")
   @@map("daily_sales_reports")
 }
 
@@ -155,46 +184,6 @@ model Payment {
   @@map("payments")
 }
 
-
-model Vendor {
-  id           String  @id @default(cuid())
-  name         String
-  email        String  @unique
-  phone_number String?
-  address      String?
-  is_active    Boolean @default(true)
-  image        String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
- 
-  products            Product[]
-  shop_orders         ShopOrder[]
-  daily_sales_reports DailySalesReport[]
- 
-  @@map("vendors")
-}
- 
-model Shop {
-  id           String  @id @default(cuid())
-  name         String
-  address      String
-  is_active    Boolean @default(true)
-  image        String?
-  email        String  @unique
-  phone_number String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
- 
-  products                  Product[]
-  product_deliveries        ProductDelivery[]
-  product_delivered_history ProductDeliveredHistory[]
-  product_return_history    ProductReturnHistory[]
-  shop_orders               ShopOrder[]
-  daily_sales_reports       DailySalesReport[]
- 
-  @@map("shops")
-}
- 
 model Product {
   id          String   @id @default(cuid())
   title       String
@@ -244,6 +233,7 @@ model ProductDelivery {
  
 model ProductDeliveredHistory {
   id               String            @id @default(cuid())
+  pieces           Int               
   total_price      Int               
   transaction_type TransactionType
   paid             Boolean           @default(false)

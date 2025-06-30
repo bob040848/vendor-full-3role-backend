@@ -1,7 +1,7 @@
 // backend/graphql/context.ts
 import { PrismaClient } from '@prisma/client';
 
-export interface User {
+export type User ={
   id: string;
   email?: string;
   firstName?: string | null;
@@ -10,7 +10,7 @@ export interface User {
   role?: 'ADMIN' | 'VENDOR' | 'USER'; 
 }
 
-export interface GraphQLContext {
+export type GraphQLContext ={
   prisma: PrismaClient;
   user?: User;
 }

@@ -5,7 +5,7 @@ CREATE TYPE "TransactionType" AS ENUM ('CASH', 'TRANSFER', 'NEXTPAYMENT');
 CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'VENDOR', 'USER');
 
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'CONFIRMED', 'DELIVERED', 'CANCELLED', 'RETURNED');
+CREATE TYPE "OrderStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'CONFIRMED', 'DELIVERED', 'CANCELLED', 'RETURNED');
 
 -- CreateEnum
 CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
@@ -13,6 +13,7 @@ CREATE TYPE "RequestStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 -- CreateTable
 CREATE TABLE "users" (
     "id" TEXT NOT NULL,
+    "clerk_id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "firstName" TEXT,
     "lastName" TEXT,
@@ -26,32 +27,35 @@ CREATE TABLE "users" (
 );
 
 -- CreateTable
-CREATE TABLE "vendor_requests" (
+CREATE TABLE "vendors" (
     "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
-    "phone" TEXT,
+    "phone_number" TEXT,
     "address" TEXT,
-    "description" TEXT,
-    "status" "RequestStatus" NOT NULL DEFAULT 'PENDING',
-    "reviewed_at" TIMESTAMP(3),
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "image" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "vendor_requests_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "vendors_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "admin_approvals" (
+CREATE TABLE "shops" (
     "id" TEXT NOT NULL,
-    "vendor_request_id" TEXT NOT NULL,
-    "admin_id" TEXT NOT NULL,
-    "approved" BOOLEAN NOT NULL,
-    "notes" TEXT,
+    "user_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "image" TEXT,
+    "email" TEXT NOT NULL,
+    "phone_number" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "admin_approvals_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "shops_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -70,6 +74,18 @@ CREATE TABLE "shop_orders" (
     "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "shop_orders_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "admin_approvals" (
+    "id" TEXT NOT NULL,
+    "shop_order_id" TEXT NOT NULL,
+    "admin_id" TEXT NOT NULL,
+    "approved" BOOLEAN NOT NULL,
+    "notes" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "admin_approvals_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -116,36 +132,6 @@ CREATE TABLE "payments" (
 );
 
 -- CreateTable
-CREATE TABLE "vendors" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "phone_number" TEXT,
-    "address" TEXT,
-    "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "image" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "vendors_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "shops" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "address" TEXT NOT NULL,
-    "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "image" TEXT,
-    "email" TEXT NOT NULL,
-    "phone_number" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "shops_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "products" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -180,6 +166,7 @@ CREATE TABLE "product_deliveries" (
 -- CreateTable
 CREATE TABLE "product_delivered_history" (
     "id" TEXT NOT NULL,
+    "pieces" INTEGER NOT NULL,
     "total_price" INTEGER NOT NULL,
     "transaction_type" "TransactionType" NOT NULL,
     "paid" BOOLEAN NOT NULL DEFAULT false,
@@ -245,7 +232,22 @@ CREATE TABLE "delivery_persons" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "users_clerk_id_key" ON "users"("clerk_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "vendors_user_id_key" ON "vendors"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "vendors_email_key" ON "vendors"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "shops_user_id_key" ON "shops"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "shops_email_key" ON "shops"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "shop_orders_order_number_key" ON "shop_orders"("order_number");
@@ -257,19 +259,10 @@ CREATE UNIQUE INDEX "daily_sales_reports_shop_id_vendor_id_date_key" ON "daily_s
 CREATE UNIQUE INDEX "payments_product_delivered_history_id_key" ON "payments"("product_delivered_history_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "vendors_email_key" ON "vendors"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "shops_email_key" ON "shops"("email");
-
--- CreateIndex
 CREATE UNIQUE INDEX "products_barcode_key" ON "products"("barcode");
 
 -- AddForeignKey
-ALTER TABLE "vendor_requests" ADD CONSTRAINT "vendor_requests_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "admin_approvals" ADD CONSTRAINT "admin_approvals_vendor_request_id_fkey" FOREIGN KEY ("vendor_request_id") REFERENCES "vendor_requests"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "vendors" ADD CONSTRAINT "vendors_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "shop_orders" ADD CONSTRAINT "shop_orders_shop_id_fkey" FOREIGN KEY ("shop_id") REFERENCES "shops"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -279,6 +272,9 @@ ALTER TABLE "shop_orders" ADD CONSTRAINT "shop_orders_vendor_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "shop_orders" ADD CONSTRAINT "shop_orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "admin_approvals" ADD CONSTRAINT "admin_approvals_shop_order_id_fkey" FOREIGN KEY ("shop_order_id") REFERENCES "shop_orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "shop_order_items" ADD CONSTRAINT "shop_order_items_shop_order_id_fkey" FOREIGN KEY ("shop_order_id") REFERENCES "shop_orders"("id") ON DELETE CASCADE ON UPDATE CASCADE;
