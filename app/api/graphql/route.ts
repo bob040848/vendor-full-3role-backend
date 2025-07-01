@@ -1,10 +1,10 @@
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { NextRequest, NextResponse } from "next/server";
-// import { typeDefs } from "@/graphql/schema";
-// import { resolvers } from "@/graphql/resolvers";
-import { adminTypeDefs, userTypeDefs, vendorTypeDefs } from "@/graphql/schemas";
-import { adminResolvers, userResolvers, vendorResolvers } from "@/graphql/resolvers/";
+import { typeDefs } from "@/graphql/schema";
+import { resolvers } from "@/graphql/resolvers";
+// import { adminTypeDefs, userTypeDefs, vendorTypeDefs } from "@/graphql/schemas";
+// import { adminResolvers, userResolvers, vendorResolvers } from "@/graphql/resolvers/";
 import prisma from "@/lib/prisma";
 import { verifyToken, createClerkClient } from "@clerk/backend";
 
@@ -13,8 +13,8 @@ const clerkClient = createClerkClient({
 });
 
 const server = new ApolloServer({
-  // typeDefs
-  // resolvers,
+  typeDefs,
+  resolvers,
   introspection: true,
 });
 
