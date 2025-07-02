@@ -274,6 +274,7 @@ export const typeDefs = gql`
     vendor_id: String!
     shop_id: String!
     notes: String
+    delivered_at: DateTime
     order_items: [ShopOrderItemInput!]!
   }
 
