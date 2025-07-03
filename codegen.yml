@@ -1,6 +1,6 @@
 #//backend/codegen.yml
 overwrite: true
-schema: "./graphql/schema.ts"  
+schema: "./graphql/schema.ts"
 generates:
   generated/graphql.ts:
     plugins:
@@ -22,7 +22,6 @@ generates:
         ProductStock: "@prisma/client#ProductStock"
         DeliveryPerson: "@prisma/client#DeliveryPerson"
         ShopOrder: "@prisma/client#ShopOrder"
-        VendorRequest: "@prisma/client#VendorRequest"
         DailySalesReport: "@prisma/client#DailySalesReport"
         AdminApproval: "@prisma/client#AdminApproval"
         Payment: "@prisma/client#Payment"

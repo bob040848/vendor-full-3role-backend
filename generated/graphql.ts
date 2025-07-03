@@ -1,5 +1,5 @@
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { User, Vendor, Shop, Product, ProductDelivery, ProductDeliveredHistory, ProductReturnHistory, ProductRemaining, ProductStock, DeliveryPerson, ShopOrder, VendorRequest, DailySalesReport, AdminApproval, Payment, ShopOrderItem } from '@prisma/client';
+import { User, Vendor, Shop, Product, ProductDelivery, ProductDeliveredHistory, ProductReturnHistory, ProductRemaining, ProductStock, DeliveryPerson, ShopOrder, DailySalesReport, AdminApproval, Payment, ShopOrderItem } from '@prisma/client';
 import { GraphQLContext } from '../graphql/context';
 export type Maybe<T> = T | null | undefined;
 export type InputMaybe<T> = T | null | undefined;
@@ -66,6 +66,7 @@ export type GQL_CreateShopInput = {
 };
 
 export type GQL_CreateShopOrderInput = {
+  delivered_at?: InputMaybe<Scalars['DateTime']['input']>;
   notes?: InputMaybe<Scalars['String']['input']>;
   order_items: Array<GQL_ShopOrderItemInput>;
   shop_id: Scalars['String']['input'];
