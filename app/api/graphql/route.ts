@@ -15,7 +15,7 @@ const server = new ApolloServer({
   resolvers,
   introspection: true,
 });
-
+//coments
 async function getUser(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
