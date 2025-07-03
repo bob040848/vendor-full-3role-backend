@@ -3,8 +3,6 @@ import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { NextRequest, NextResponse } from "next/server";
 import { typeDefs } from "@/graphql/schema";
 import { resolvers } from "@/graphql/resolvers";
-// import { adminTypeDefs, userTypeDefs, vendorTypeDefs } from "@/graphql/schemas";
-// import { adminResolvers, userResolvers, vendorResolvers } from "@/graphql/resolvers/";
 import prisma from "@/lib/prisma";
 import { verifyToken, createClerkClient } from "@clerk/backend";
 
@@ -56,11 +54,16 @@ const handler = startServerAndCreateNextHandler(server, {
   },
 });
 
+const FRONTEND_ORIGIN =
+  process.env.NODE_ENV === "production"
+    ? "https://vendor-full-3role-frontend.vercel.app"
+    : "http://localhost:3000";
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": "http://localhost:3000",
+      "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Allow-Credentials": "true",
@@ -70,14 +73,26 @@ export async function OPTIONS() {
 
 export async function POST(req: Request) {
   const response = (await handler(req)) as NextResponse;
-  response.headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
+  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
   response.headers.set("Access-Control-Allow-Credentials", "true");
   return response;
 }
 
 export async function GET(req: Request) {
   const response = (await handler(req)) as NextResponse;
-  response.headers.set("Access-Control-Allow-Origin", "http://localhost:3000");
+  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+  return response;
+}
+export async function PUT(req: Request) {
+  const response = (await handler(req)) as NextResponse;
+  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+  return response;
+}
+export async function DELETE(req: Request) {
+  const response = (await handler(req)) as NextResponse;
+  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
   response.headers.set("Access-Control-Allow-Credentials", "true");
   return response;
 }
