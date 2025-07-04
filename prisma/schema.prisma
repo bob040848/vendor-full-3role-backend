@@ -16,18 +16,18 @@ enum TransactionType {
  
 enum UserRole {
   ADMIN
-  VENDOR  // Factories who produce/distribute products
-  USER    // Shops who get products and order products
+  VENDOR  
+  USER    
 }
 
 enum OrderStatus {
-  PENDING     // Initial order placed by shop
-  APPROVED    // Admin approved the order
-  REJECTED    // Admin rejected the order
-  CONFIRMED   // Vendor confirmed they can fulfill
-  DELIVERED   // Products delivered to shop
-  CANCELLED   // Order cancelled
-  RETURNED    // Products returned
+  PENDING     
+  APPROVED    
+  REJECTED    
+  CONFIRMED   
+  DELIVERED   
+  CANCELLED   
+  RETURNED    
 }
 
 enum RequestStatus {
@@ -38,7 +38,7 @@ enum RequestStatus {
 
 model User {
   id         String   @id @default(cuid())
-  clerk_id   String   @unique  // Clerk authentication ID
+  clerk_id   String   @unique  
   email      String   @unique
   firstName  String?
   lastName   String?
@@ -48,10 +48,10 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  // For USER role (shops)
+  
   shop_orders     ShopOrder[]
   
-  // For VENDOR role (factories)
+  
   vendor_profile  Vendor?
 
   @@map("users")
@@ -59,7 +59,7 @@ model User {
 
 model Vendor {
   id           String  @id @default(cuid())
-  user_id      String  @unique  // Links to User table
+  user_id      String  @unique  
   name         String
   email        String  @unique
   phone_number String?
@@ -79,7 +79,7 @@ model Vendor {
 
 model Shop {
   id           String  @id @default(cuid())
-  user_id      String  @unique  // Links to User table for shop owners
+  user_id      String  @unique  
   name         String
   address      String
   is_active    Boolean @default(true)
@@ -103,7 +103,7 @@ model ShopOrder {
   id           String      @id @default(cuid())
   shop_id      String
   vendor_id    String
-  user_id      String      // Shop owner/manager who placed order
+  user_id      String      
   order_number String      @unique
   status       OrderStatus @default(PENDING)
   total_amount Int         @default(0)
@@ -117,15 +117,15 @@ model ShopOrder {
   vendor       Vendor          @relation(fields: [vendor_id], references: [id])
   user         User            @relation(fields: [user_id], references: [id])
   order_items  ShopOrderItem[]
-  admin_approvals AdminApproval[]  // Admin approval for orders
+  admin_approvals AdminApproval[]  
 
   @@map("shop_orders")
 }
 
 model AdminApproval {
   id            String   @id @default(cuid())
-  shop_order_id String   // Links to ShopOrder instead of VendorRequest
-  admin_id      String   // Clerk ID of admin who approved/rejected
+  shop_order_id String   
+  admin_id      String   
   approved      Boolean
   notes         String?
   created_at    DateTime @default(now())

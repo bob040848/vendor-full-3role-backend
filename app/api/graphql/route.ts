@@ -15,7 +15,6 @@ const server = new ApolloServer({
   resolvers,
   introspection: true,
 });
-//coments
 async function getUser(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
@@ -63,7 +62,7 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
+      "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Allow-Credentials": "true",
@@ -71,26 +70,9 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(req: Request) {
-  const response = (await handler(req)) as NextResponse;
-  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  return response;
-}
+export { POST as ApolloServer };
 
-export async function GET(req: Request) {
-  const response = (await handler(req)) as NextResponse;
-  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  return response;
-}
-export async function PUT(req: Request) {
-  const response = (await handler(req)) as NextResponse;
-  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  return response;
-}
-export async function DELETE(req: Request) {
+export async function POST(req: Request) {
   const response = (await handler(req)) as NextResponse;
   response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
   response.headers.set("Access-Control-Allow-Credentials", "true");
