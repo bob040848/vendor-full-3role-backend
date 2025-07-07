@@ -156,7 +156,7 @@ export const typeDefs = gql`
     description: String
     stock: Int!
     ingredient: String
-    barcode: Int
+    barcode: String
     price: Int!
     expired_at: Int
     image: String
@@ -327,7 +327,7 @@ export const typeDefs = gql`
     description: String
     stock: Int!
     ingredient: String
-    barcode: Int
+    barcode: String
     price: Int!
     expired_at: Int
     image: String
@@ -340,7 +340,7 @@ export const typeDefs = gql`
     description: String
     stock: Int
     ingredient: String
-    barcode: Int
+    barcode: String
     price: Int
     expired_at: Int
     image: String

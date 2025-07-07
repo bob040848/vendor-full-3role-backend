@@ -25,7 +25,7 @@ export const vendorTypeDefs = gql`
     description: String
     stock: Int!
     ingredient: String
-    barcode: Int
+    barcode: String
     price: Int!
     expired_at: Int
     image: String
@@ -93,7 +93,7 @@ export const vendorTypeDefs = gql`
     description: String
     stock: Int!
     ingredient: String
-    barcode: Int
+    barcode: String
     price: Int!
     expired_at: Int
     image: String
@@ -106,7 +106,7 @@ export const vendorTypeDefs = gql`
     description: String
     stock: Int
     ingredient: String
-    barcode: Int
+    barcode: String
     price: Int
     expired_at: Int
     image: String

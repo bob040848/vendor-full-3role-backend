@@ -44,7 +44,7 @@ export type GQL_CreatePaymentInput = {
 };
 
 export type GQL_CreateProductInput = {
-  barcode?: InputMaybe<Scalars['Int']['input']>;
+  barcode?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   expired_at?: InputMaybe<Scalars['Int']['input']>;
   image?: InputMaybe<Scalars['String']['input']>;
@@ -308,7 +308,7 @@ export type GQL_Payment = {
 
 export type GQL_Product = {
   __typename?: 'Product';
-  barcode?: Maybe<Scalars['Int']['output']>;
+  barcode?: Maybe<Scalars['String']['output']>;
   created_at: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   expired_at?: Maybe<Scalars['Int']['output']>;
@@ -589,7 +589,7 @@ export type GQL_UpdateDeliveryPersonInput = {
 };
 
 export type GQL_UpdateProductInput = {
-  barcode?: InputMaybe<Scalars['Int']['input']>;
+  barcode?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   expired_at?: InputMaybe<Scalars['Int']['input']>;
   image?: InputMaybe<Scalars['String']['input']>;
@@ -912,7 +912,7 @@ export type GQL_PaymentResolvers<ContextType = GraphQLContext, ParentType extend
 }>;
 
 export type GQL_ProductResolvers<ContextType = GraphQLContext, ParentType extends GQL_ResolversParentTypes['Product'] = GQL_ResolversParentTypes['Product']> = ResolversObject<{
-  barcode?: Resolver<Maybe<GQL_ResolversTypes['Int']>, ParentType, ContextType>;
+  barcode?: Resolver<Maybe<GQL_ResolversTypes['String']>, ParentType, ContextType>;
   created_at?: Resolver<GQL_ResolversTypes['DateTime'], ParentType, ContextType>;
   description?: Resolver<Maybe<GQL_ResolversTypes['String']>, ParentType, ContextType>;
   expired_at?: Resolver<Maybe<GQL_ResolversTypes['Int']>, ParentType, ContextType>;

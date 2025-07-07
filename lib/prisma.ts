@@ -1,4 +1,4 @@
-//smes-v-be/lib/prisma.ts
+//backend/lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 

@@ -1,3 +1,4 @@
+//backend/app/api/graphql/route.ts
 import { ApolloServer } from "@apollo/server";
 import { startServerAndCreateNextHandler } from "@as-integrations/next";
 import { NextRequest, NextResponse } from "next/server";
@@ -30,10 +31,6 @@ async function getUser(req: NextRequest) {
 
     return {
       id: userRecord.id,
-      email: userRecord.emailAddresses?.[0]?.emailAddress,
-      firstName: userRecord.firstName,
-      lastName: userRecord.lastName,
-      imageUrl: userRecord.imageUrl,
       role: userRecord.publicMetadata?.role as
         | "ADMIN"
         | "VENDOR"
@@ -53,11 +50,6 @@ const handler = startServerAndCreateNextHandler(server, {
   },
 });
 
-const FRONTEND_ORIGIN =
-  process.env.NODE_ENV === "production"
-    ? "https://vendor-full-3role-frontend.vercel.app"
-    : "http://localhost:3000";
-
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
@@ -69,12 +61,6 @@ export async function OPTIONS() {
     },
   });
 }
+export const dynamic = "force-dynamic";
 
-export { POST as ApolloServer };
-
-export async function POST(req: Request) {
-  const response = (await handler(req)) as NextResponse;
-  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
-  response.headers.set("Access-Control-Allow-Credentials", "true");
-  return response;
-}
+export {handler as GET, handler as POST};
