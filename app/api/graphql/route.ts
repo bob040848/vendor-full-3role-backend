@@ -31,11 +31,6 @@ async function getUser(req: NextRequest) {
 
     return {
       id: userRecord.id,
-      role: userRecord.publicMetadata?.role as
-        | "ADMIN"
-        | "VENDOR"
-        | "USER"
-        | undefined,
     };
   } catch (error) {
     console.error("Error verifying token or fetching user:", error);
@@ -50,17 +45,39 @@ const handler = startServerAndCreateNextHandler(server, {
   },
 });
 
+const FRONTEND_ORIGIN =
+  process.env.NODE_ENV === "production"
+    ? "https://vendor-full-3role-frontend.vercel.app"
+    : "http://localhost:3000";
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": FRONTEND_ORIGIN,
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
       "Access-Control-Allow-Credentials": "true",
     },
   });
 }
+
+export async function GET(req: Request) {
+  const response = (await handler(req)) as NextResponse;
+  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+  return response;
+}
+
+export async function POST(req: Request) {
+  const response = (await handler(req)) as NextResponse;
+  response.headers.set("Access-Control-Allow-Origin", FRONTEND_ORIGIN);
+  response.headers.set("Access-Control-Allow-Credentials", "true");
+  return response;
+}
+
+
+
 export const dynamic = "force-dynamic";
 
-export {handler as GET, handler as POST};
+// export {handler as GET, handler as POST};
